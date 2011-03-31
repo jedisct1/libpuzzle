@@ -1,0 +1,290 @@
+.\"
+.\" Copyright (c) 2007 Frank DENIS <j at pureftpd.org>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: September 24 2007 $
+.Dt LIBPUZZLE 3
+.Sh NAME
+.Nm puzzle_init_cvec ,
+.Nm puzzle_init_dvec ,
+.Nm puzzle_fill_dvec_from_file ,
+.Nm puzzle_fill_cvec_from_file ,
+.Nm puzzle_fill_cvec_from_dvec ,
+.Nm puzzle_free_cvec ,
+.Nm puzzle_free_dvec ,
+.Nm puzzle_init_compressed_cvec ,
+.Nm puzzle_free_compressed_cvec ,
+.Nm puzzle_compress_cvec ,
+.Nm puzzle_uncompress_cvec ,
+.Nm puzzle_vector_normalized_distance
+.Nd compute comparable signatures of bitmap images.
+.Sh SYNOPSIS
+.Fd #include <puzzle.h>
+.Ft int
+.Fn puzzle_init_context "PuzzleContext *context"
+.Ft int
+.Fn puzzle_free_context "PuzzleContext *context"
+.Ft int
+.Fn puzzle_init_cvec "PuzzleContext *context" "PuzzleCvec *cvec"
+.Ft int
+.Fn puzzle_init_dvec "PuzzleContext *context" "PuzzleDvec *cvec"
+.Ft void
+.Fn puzzle_fill_dvec_from_file "PuzzleContext *context" "PuzzleDvec * dvec" "const char *file"
+.Ft void
+.Fn puzzle_fill_cvec_from_file "PuzzleContext *context" "PuzzleCvec * cvec" "const char *file"
+.Ft void
+.Fn puzzle_fill_cvec_from_dvec "PuzzleContext *context" "PuzzleCvec * cvec" "const PuzzleDvec *dvec"
+.Ft void
+.Fn puzzle_free_cvec "PuzzleContext *context" "PuzzleCvec *cvec"
+.Ft void
+.Fn puzzle_free_dvec "PuzzleContext *context" "PuzzleDvec *cvec"
+.Ft void
+.Fn puzzle_init_compressed_cvec "PuzzleContext *context" "PuzzleCompressedCvec * compressed_cvec"
+.Ft void
+.Fn puzzle_free_compressed_cvec "PuzzleContext *context" "PuzzleCompressedCvec * compressed_cvec"
+.Ft int
+.Fn puzzle_compress_cvec "PuzzleContext *context" "PuzzleCompressedCvec * compressed_cvec" "const PuzzleCvec * cvec"
+.Ft int
+.Fn puzzle_uncompress_cvec "PuzzleContext *context" "PuzzleCompressedCvec * compressed_cvec" "PuzzleCvec * const cvec"
+.Ft double
+.Fn puzzle_vector_normalized_distance "PuzzleContext *context" "const PuzzleCvec * cvec1" "const PuzzleCvec * cvec2", "const int fix_for_texts"
+.Sh DESCRIPTION
+The Puzzle library computes a signature out of a bitmap picture.
+Signatures are comparable and similar pictures have similar signatures.
+.Pp
+After a picture has been loaded and uncompressed, featureless parts of
+the image are skipped (autocrop), unless that step has been explicitely
+disabled, see
+.Xr puzzle_set 3
+.Sh LIBPUZZLE CONTEXT
+Every public function requires a
+.Va PuzzleContext
+object, that stores every required tunables.
+.Pp
+Any application using libpuzzle should initialize a
+.Va PuzzleContext
+object with
+.Fn puzzle_init_context
+and free it after use with
+.Fn puzzle_free_context
+.Bd \-literal \-offset indent
+PuzzleContext context;
+
+puzzle_init_context(&context);
+ ...
+puzzle_free_context(&context);
+.Ed
+.Sh DVEC AND CVEC VECTORS
+The next step is to divide the cropped image into a grid and to compute
+the average intensity of soft\(hyedged pixels in every block. The result is a
+.Va PuzzleDvec
+object.
+.Pp
+.Va PuzzleDvec
+objects should be initialized before use, with
+.Fn puzzle_init_dvec
+and freed after use with
+.Fn puzzle_free_dvec
+.Pp
+The
+.Va PuzzleDvec
+structure has two important fields:
+.Va vec
+is the pointer to the first element of the array containing the average
+intensities, and
+.Va sizeof_compressed_vec
+is the number of elements.
+.Pp
+.Va PuzzleDvec
+objects are not comparable, so what you usually want is to transform these
+objects into
+.Va PuzzleCvec
+objects.
+.Pp
+A
+.Va PuzzleCvec
+object is a vector with relationships between adjacent blocks from a
+.Va PuzzleDvec
+object.
+.Pp
+The
+.Fn puzzle_fill_cvec_from_dvec
+fills a
+.Va PuzzleCvec
+object from a
+.Va PuzzleDvec
+object.
+.Pp
+But just like the other structure,
+.Va PuzzleCvec
+objects must be initialized and freed with
+.Fn puzzle_init_cvec
+and
+.Fn puzzle_free_cvec
+.Pp
+.Va PuzzleCvec
+objects have a vector whoose first element is in the
+.Va vec
+field, and the number of elements is in the
+.Va sizeof_vec
+field
+.Sh LOADING PICTURES
+.Va PuzzleDvec
+and
+.Va PuzzleCvec
+objects can be computed from a bitmap picture file, with
+.Fn puzzle_fill_dvec_from_file
+and
+.Fn puzzle_fill_cvec_from_file
+.Pp
+.Em GIF
+,
+.Em PNG
+and
+.Em JPEG
+files formats are currently supported and automatically recognized.
+.Pp
+Here's a simple example that creates a
+.Va PuzzleCvec
+objects out of a file.
+.Bd \-literal \-offset indent
+PuzzleContext context;
+PuzzleCvec cvec;
+
+puzzle_init_context(&context);
+puzzle_init_cvec(&context, &cvec);
+puzzle_fill_cvec_from_file(&context, &cvec, "test\-picture.jpg");
+ ...
+puzzle_free_cvec(&context, &cvec);
+puzzle_free_context(&context);
+.Ed
+.Sh COMPARING VECTORS
+In order to check whether two pictures are similar, you need to compare their
+.Va PuzzleCvec
+signatures, using
+.Fn puzzle_vector_normalized_distance
+.Pp
+That function returns a distance, between 0.0 and 1.0. The lesser, the nearer.
+.Pp
+Tests on common pictures show that a normalized distance of 0.6 (also defined as
+.Va PUZZLE_CVEC_SIMILARITY_THRESHOLD
+) means that both pictures are visually similar.
+.Pp
+If that threshold is not right for your set of pictures, you can experiment
+with
+.Va PUZZLE_CVEC_SIMILARITY_HIGH_THRESHOLD
+,
+.Va PUZZLE_CVEC_SIMILARITY_LOW_THRESHOLD
+and
+.Va PUZZLE_CVEC_SIMILARITY_LOWER_THRESHOLD
+or with your own value.
+.Pp
+If the
+.Fa fix_for_texts
+of
+.Fn puzzle_vector_normalized_distance
+is
+.Em 1
+, a fix is applied to the computation in order to deal with bitmap pictures
+that contain text. That fix is recommended, as it allows using the same
+threshold for that kind of picture as for generic pictures.
+.Pp
+If
+.Fa fix_for_texts
+is
+.Em 0
+, that special way of computing the normalized distance is disabled.
+.Bd \-literal \-offset indent
+PuzzleContext context;
+PuzzleCvec cvec1, cvec2;
+double d;
+
+puzzle_init_context(&context);
+puzzle_init_cvec(&context, &cvec1);
+puzzle_init_cvec(&context, &cvec2);
+puzzle_fill_cvec_from_file(&context, &cvec1, "test\-picture\-1.jpg");
+puzzle_fill_cvec_from_file(&context, &cvec2, "test\-picture\-2.jpg");
+d = puzzle_vector_normalized_distance(&context, &cvec1, &cvec2, 1);
+if (d < PUZZLE_CVEC_SIMILARITY_THRESHOLD) {
+  puts("Pictures are similar");
+}
+puzzle_free_cvec(&context, &cvec2);
+puzzle_free_cvec(&context, &cvec1);
+puzzle_free_context(&context);
+.Ed
+.Sh CVEC COMPRESSION
+In order to reduce storage needs,
+.Va PuzzleCvec
+objects can be compressed to 1/3 of their original size.
+.Pp
+.Va PuzzleCompressedCvec
+structures hold the compressed data. Before and after use, these structures
+have to be passed to
+.Fn puzzle_init_compressed_cvec
+and
+.Fn puzzle_free_compressed_cvec
+.Pp
+.Fn puzzle_compress_cvec
+compresses a
+.Va PuzzleCvec
+object into a
+.Va PuzzleCompressedCvec
+object.
+.Pp
+And
+.Fn puzzle_uncompress_cvec
+uncompresses a
+.Va PuzzleCompressedCvec
+object into a
+.Va PuzzleCvec
+object.
+.Bd \-literal \-offset indent
+PuzzleContext context;
+PuzzleCvec cvec;
+PuzzleCompressedCvec c_cvec;
+ ...
+puzzle_init_compressed_cvec(&context, &c_cvec);
+puzzle_compress_cvec(&context, &c_cvec, &cvec);
+ ...
+puzzle_free_compressed_cvec(&context, &c_cvec); 
+.Ed
+The
+.Va PuzzleCompressedCvec
+structure has two important fields:
+.Va vec
+that is a pointer to the first element of the compressed data, and
+.Va sizeof_compressed_vec
+that contains the number of elements.
+.Sh RETURN VALUE
+Functions return
+.Em 0
+on success, and
+.Em \-1
+if something went wrong.
+.Sh AUTHORS
+.Nf
+Frank DENIS
+libpuzzle at pureftpd dot org
+.Fi
+.Sh ACKNOWLEDGMENTS
+.Nf
+Xerox Research Center
+H. CHI WONG
+Marschall BERN
+David GOLDBERG
+Sameh SCHAFIK
+.Fi
+.Sh SEE ALSO
+.Xr puzzle_set 3
+.Xr puzzle\-diff 8

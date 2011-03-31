@@ -1,0 +1,3 @@
+SUBDIRS = \
+	libpuzzle \
+	examples

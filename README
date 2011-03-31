@@ -1,0 +1,215 @@
+
+                               .:. LIBPUZZLE .:.
+                               
+                         http://libpuzzle.pureftpd.org
+
+
+            ------------------------ BLURB ------------------------
+
+
+The Puzzle library is designed to quickly find visually similar images (gif,
+png, jpg), even if they have been resized, recompressed, recolored or slightly
+modified.
+
+The library is free, lightweight yet very fast, configurable, easy to use and
+it has been designed with security in mind. This is a C library, but is also
+comes with a command-line tool and PHP bindings.
+
+
+          ------------------------ REFERENCE ------------------------
+          
+          
+The Puzzle library is a implementation of "An image signature for any kind of
+image", by H. CHI WONG, Marschall BERN and David GOLDBERG.
+
+
+         ------------------------ COMPILATION ------------------------
+         
+         
+In order to load images, the library relies on the GD2 library.
+You need to install gdlib2 and its development headers before compiling
+libpuzzle.
+The GD2 library is available as a pre-built package for most operating systems.
+Debian and Ubuntu users should install the "libgd2-dev" or the "libgd2-xpm-dev"
+package.
+Gentoo users should install "media-libs/gd".
+OpenBSD, NetBSD and DragonflyBSD users should install the "gd" package.
+MacPorts users should install the "gd2" package.
+X11 support is not required for the Puzzle library.
+
+Once GD2 has been installed, configure the Puzzle library as usual:
+
+./configure
+
+This is a standard autoconf script, if you're not familiar with it, please
+have a look at the INSTALL file.
+
+Compile the beast:
+
+make
+
+Try the built-in tests:
+
+make check
+
+If everything looks fine, install the software:
+
+make install
+
+If anything goes wrong, please submit a bug report to:
+                       libpuzzle [at] pureftpd [dot] org
+
+
+            ------------------------ USAGE ------------------------
+         
+         
+The API is documented in the libpuzzle(3) and puzzle_set(3) man pages.
+You can also play with the puzzle-diff test application.
+See puzzle-diff(8) for more info about the puzzle-diff application.
+
+In order to be thread-safe, every exported function of the library requires a
+PuzzleContext object. That object stores various run-time tunables.
+
+Out of a bitmap picture, the Puzzle library can fill a PuzzleCVec object :
+
+  PuzzleContext context;
+  PuzzleCVec cvec;
+  
+  puzzle_init_context(&context);
+  puzzle_init_cvec(&context, &cvec);
+  puzzle_fill_cvec_from_file(&context, &cvec, "directory/filename.jpg");
+
+The PuzzleCvec structure holds two fields:
+  signed char *vec:  a pointer to the first element of the vector
+  size_t sizeof_vec: the number of elements
+  
+The size depends on the "lambdas" value (see puzzle_set(3)).
+
+PuzzleCvec structures can be compared:
+
+  d = puzzle_vector_normalized_distance(&context, &cvec1, &cvec2, 1);
+  
+d is the normalized distance between both vectors. If d is below 0.6, pictures
+are probably similar.
+
+If you need further help, feel free to subscribe to the mailing-list (see
+below).
+
+
+          ------------------------ INDEXING ------------------------
+         
+
+How to quickly find similar pictures, if they are millions of records?
+
+The original paper has a simple, yet efficient answer.
+
+Cut the vector in fixed-length words. For instance, let's consider the
+following vector:
+
+[ a b c d e f g h i j k l m n o p q r s t u v w x y z ]
+
+With a word length (K) of 10, you can get the following words:
+
+[ a b c d e f g h i j ] found at position 0
+[ b c d e f g h i j k ] found at position 1
+[ c d e f g h i j k l ] found at position 2
+etc. until position N-1
+
+Then, index your vector with a compound index of (word + position).
+
+Even with millions of images, K = 10 and N = 100 should be enough to have very
+little entries sharing the same index.
+
+Here's a very basic sample database schema:
+
++-----------------------------+
+|          signatures         |
++-----------------------------+
+| sig_id | signature | pic_id |
++--------+-----------+--------+
+
++--------------------------+
+|           words          |
++--------------------------+
+| pos_and_word | fk_sig_id |
++--------------+-----------+
+
+I'd recommend splitting at least the "words" table into multiple tables and/or
+servers.
+
+By default (lambas=9) signatures are 544 bytes long. In order to save storage
+space, they can be compressed to 1/third of their original size through the
+puzzle_compress_cvec() function. Before use, they must be uncompressed with
+puzzle_uncompress_cvec().
+
+
+         ------------------------ PUZZLE-DIFF ------------------------
+         
+
+A command-line tool is also available for scripting or testing.
+
+It is installed as "puzzle-diff" and comes with a man page.
+
+Sample usage:
+
+- Output distance between two images:
+
+$ puzzle-diff pic-a-0.jpg pics-a-1.jpg
+0.102286
+
+- Compare two images, exit with 10 if they look the same, exit with 20 if
+they don't (may be useful for scripts):
+
+$ puzzle-diff -e pic-a-0.jpg pics-a-1.jpg
+$ echo $?
+10
+
+- Compute distance, without cropping and with computing the average intensity
+of the whole blocks:
+
+$ puzzle-diff -p 1.0 -c pic-a-0.jpg pic-a-1.jpg
+0.0523151
+
+
+  ------------------------ COMPARING IMAGES WITH PHP ------------------------
+  
+  
+A PHP extension is bundled with the Libpuzzle package, and it provides PHP
+bindings to most functions of the library.
+
+Documentation for the Libpuzzle PHP extension is available in the README-PHP
+file.
+         
+
+    ------------------------ APPS USING LIBPUZZLE ------------------------
+
+
+Here are third-party projects using libpuzzle:
+
+* ftwin - http://jok.is-a-geek.net/ftwin.php
+  ftwin is a tool useful to find duplicate files according to their content on
+your file system.
+
+
+           ------------------------ CONTACT ------------------------
+
+
+The main web site for the project is: http://libpuzzle.pureftpd.org
+
+If you need to share ideas with other users, or if you need help, feel free to
+subscribe to the mailing-list.
+
+In order to subscribe, just send a mail with random content to:
+
+listpuzzle-subscribe at pureftpd dot org
+
+For anything else, you can get in touch with me at:
+
+libpuzzle at pureftpd dot org
+
+If you are interested in bindings for Ruby, Python, PHP, etc. just ask!
+
+
+Thank you,
+
+               -Frank.

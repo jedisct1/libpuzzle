@@ -1,0 +1,57 @@
+.\"
+.\" Copyright (c) 2007 Frank DENIS <j at pureftpd.org>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: September 23 2007 $
+.Dt PUZZLE-DIFF 1
+.Sh NAME
+.Nm puzzle\-diff \- Compare pictures with libpuzzle
+.Sh SYNOPSIS
+.B puzzle\-diff
+[\-b <contrast barrier for cropping] [\-c] [\-C <max cropping ratio>]
+[\-e] [\-E <similarity threshold>] [\-h] [\-H <max height>] [\-l <lambdas>]
+[\-n <noise cutoff>] [\-p <p ratio>] [\-t] [\-W <max width>]
+<file 1>
+<file 2>
+.Sh DESCRIPTION
+puzzle\-diff compares two pictures and outputs the normalized distance.
+.Pp
+Try
+.Em puzzle\-diff \-h
+for more info.
+.Sh EXAMPLES
+.Pp
+Output distance between two images:
+.Bd \-literal \-offset indent
+$ puzzle\-diff pic\-a\-0.jpg pics\-a\-1.jpg
+0.102286
+.Ed
+.Pp
+Compare two images, exit with 10 if they look the same, exit with 20 if
+they don't (may be useful for scripts):
+.Bd \-literal \-offset indent
+$ puzzle\-diff \-e pic\-a\-0.jpg pics\-a\-1.jpg
+$ echo $?
+10
+.Ed
+.Pp
+Compute distance, without cropping and with computing the average intensity
+of the whole blocks:
+.Bd \-literal \-offset indent
+$ puzzle\-diff \-p 1.0 \-c pic\-a\-0.jpg pic\-a\-1.jpg
+0.0523151
+.Ed
+.Sh SEE ALSO
+.Xr libpuzzle 3
+.Xr puzzle_set 3

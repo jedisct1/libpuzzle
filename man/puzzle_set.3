@@ -1,0 +1,129 @@
+.\"
+.\" Copyright (c) 2007 Frank DENIS <j at pureftpd.org>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: September 24 2007 $
+.Dt PUZZLE_SET 3
+.Sh NAME
+.Nm puzzle_set_max_width ,
+.Nm puzzle_set_max_height ,
+.Nm puzzle_set_lambdas ,
+.Nm puzzle_set_p_ratio ,
+.Nm puzzle_set_noise_cutoff ,
+.Nm puzzle_set_contrast_barrier_for_cropping ,
+.Nm puzzle_set_max_cropping_ratio ,
+.Nm puzzle_set_autocrop
+.Nd set tunables for libpuzzle functions.
+.Sh SYNOPSIS
+.Fd #include <puzzle.h>
+.Ft int
+.Fn puzzle_set_max_width "PuzzleContext *context" "unsigned int width"
+.Ft int
+.Fn puzzle_set_max_height "PuzzleContext *context" "unsigned int height"
+.Ft int
+.Fn puzzle_set_lambdas "PuzzleContext *context" "unsigned int lambdas"
+.Ft int
+.Fn puzzle_set_p_ratio "PuzzleContext *context" "double p_ratio"
+.Ft int
+.Fn puzzle_set_noise_cutoff "PuzzleContext *context" "double noise_cutoff"
+.Ft int
+.Fn puzzle_set_contrast_barrier_for_cropping "PuzzleContext *context" "double barrier"
+.Ft int
+.Fn puzzle_set_max_cropping_ratio "PuzzleContext *context" "double ratio"
+.Ft int
+.Fn puzzle_set_autocrop "PuzzleContext *context" "int enable"
+.Sh DESCRIPTION
+While default values have been chosen to be ok for most people, the
+.Fn puzzle_set_*
+functions are knobs to fit the algorithm to your set of data and to your
+applications.
+.Sh LAMBDAS
+By default, pictures are divided in 9 x 9 blocks.
+.Pp
+.Em 9
+is the
+.Em lambdas
+value, and it can be changed with
+.Fn puzzle_set_lambdas
+.Pp
+For large databases, for complex images, for images with a lot of text or
+for sets of near\(hysimilar images, it might be better to raise that value to
+.Em 11
+or even
+.Em 13
+.Pp
+However, raising that value obviously means that vectors will require more
+storage space.
+.Pp
+The
+.Em lambdas
+value should remain the same in order to get comparable vectors. So if you
+pick
+.Em 11
+(for instance), you should always use that value for all pictures you will
+compute a digest for.
+.Fn puzzle_set_p_ratio
+.Pp
+The average intensity of each block is based upon a small centered zone.
+.Pp
+The "p ratio" determines the size of that zone. The default is 2.0, and that
+ratio mimics the behavior that is described in the reference algorithm.
+.Pp
+For very specific cases (complex images) or if you get too many false
+positives, as an alternative to increasing lambdas, you can try to lower that
+value, for instance to 1.5.
+.Pp
+The lowest acceptable value is 1.0.
+.Sh MAXIMUM SIZES
+In order to avoid CPU starvation, pictures won't be processed if their width
+or height is larger than 3000 pixels.
+.Pp
+These limits are rather large, but if you ever need to change them, the
+.Fn puzzle_set_max_width
+and
+.Fn puzzle_set_max_height
+are available.
+.Sh NOISE CUTOFF
+The noise cutoff defaults to 2. If you raise that value, more zones with
+little difference of intensity will be considered as similar.
+.Pp
+Unless you have very specialized sets of pictures, you probably don't want
+to change this.
+.Sh AUTOCROP
+By default, featureless borders of the original image are ignored. The size
+of each border depends on the sum of absolute values of differences between
+adjacent pixels, relative to the total sum.
+.Pp
+That feature can be disabled with
+.Fn puzzle_set_autocrop "0"
+Any other value will enable it.
+.Pp
+.Fn puzzle_set_contrast_barrier_for_cropping
+changes the tolerance. The default value is 5. Less shaves less, more shaves
+more.
+.Pp
+.Fn puzzle_set_max_cropping_ratio
+This is a safe\(hyguard against unwanted excessive auto\(hycropping.
+.Pp
+The default (0.25) means that no more than 25% of the total width (or
+height) will ever be shaved.
+.Sh RETURN VALUE
+Functions return
+.Em 0
+on success, and
+.Em \-1
+if something went wrong.
+.Sh SEE ALSO
+.Xr libpuzzle 3
+.Xr puzzle\-diff 8
