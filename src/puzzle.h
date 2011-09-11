@@ -60,6 +60,14 @@ int puzzle_fill_dvec_from_file(PuzzleContext * const context,
 int puzzle_fill_cvec_from_file(PuzzleContext * const context,
                                PuzzleCvec * const cvec,
                                const char * const file);
+int puzzle_fill_dvec_from_mem(PuzzleContext * const context,
+                              PuzzleDvec * const dvec,
+                              const void * const mem,
+                              const size_t size);
+int puzzle_fill_cvec_from_mem(PuzzleContext * const context,
+                              PuzzleCvec * const cvec,
+                              const void * const mem,
+                              const size_t size);
 int puzzle_fill_cvec_from_dvec(PuzzleContext * const context,
                                PuzzleCvec * const cvec,
                                const PuzzleDvec * const dvec);

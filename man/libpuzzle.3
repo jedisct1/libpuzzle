@@ -20,6 +20,8 @@
 .Nm puzzle_init_dvec ,
 .Nm puzzle_fill_dvec_from_file ,
 .Nm puzzle_fill_cvec_from_file ,
+.Nm puzzle_fill_dvec_from_mem ,
+.Nm puzzle_fill_cvec_from_mem ,
 .Nm puzzle_fill_cvec_from_dvec ,
 .Nm puzzle_free_cvec ,
 .Nm puzzle_free_dvec ,
@@ -43,6 +45,10 @@
 .Fn puzzle_fill_dvec_from_file "PuzzleContext *context" "PuzzleDvec * dvec" "const char *file"
 .Ft void
 .Fn puzzle_fill_cvec_from_file "PuzzleContext *context" "PuzzleCvec * cvec" "const char *file"
+.Ft void
+.Fn puzzle_fill_dvec_from_mem "PuzzleContext *context" "PuzzleDvec * dvec" "const void *mem" "size_t size"
+.Ft void
+.Fn puzzle_fill_cvec_from_mem "PuzzleContext *context" "PuzzleCvec * cvec" "const void *mem" "size_t size"
 .Ft void
 .Fn puzzle_fill_cvec_from_dvec "PuzzleContext *context" "PuzzleCvec * cvec" "const PuzzleDvec *dvec"
 .Ft void

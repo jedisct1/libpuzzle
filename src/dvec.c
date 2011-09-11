@@ -43,9 +43,10 @@ void puzzle_free_dvec(PuzzleContext * const context, PuzzleDvec * const dvec)
     dvec->vec = NULL;
 }
 
-static PuzzleImageTypeCode puzzle_get_image_type_from_fp(FILE * const fp)
+#define MAX_SIGNATURE_LENGTH 8U
+
+static PuzzleImageTypeCode puzzle_get_image_type_from_header(const unsigned char * const header)
 {
-    #define MAX_SIGNATURE_LENGTH 8U
     static const PuzzleImageType image_types[] = {
         { (size_t) 4U, (const unsigned char *)
             "GIF8", PUZZLE_IMAGE_TYPE_GIF },
@@ -56,20 +57,9 @@ static PuzzleImageTypeCode puzzle_get_image_type_from_fp(FILE * const fp)
         { (size_t) 0U, NULL, PUZZLE_IMAGE_TYPE_UNKNOWN }
     };
     const PuzzleImageType *image_type = image_types;
-    PuzzleImageTypeCode ret = PUZZLE_IMAGE_TYPE_ERROR;
-    unsigned char header[MAX_SIGNATURE_LENGTH];
-    fpos_t pos;
-    
-    if (fgetpos(fp, &pos) != 0) {
-        return PUZZLE_IMAGE_TYPE_ERROR;
-    }
-    rewind(fp);
-    if (fread(header, (size_t) 1U, sizeof header, fp) != sizeof header) {
-        goto bye;
-    }
-    ret = PUZZLE_IMAGE_TYPE_UNKNOWN;
+    PuzzleImageTypeCode ret = PUZZLE_IMAGE_TYPE_UNKNOWN;
     do {
-        if (image_type->sizeof_signature > sizeof header) {
+        if (image_type->sizeof_signature > MAX_SIGNATURE_LENGTH) {
             puzzle_err_bug(__FILE__, __LINE__);
         }
         if (memcmp(header, image_type->signature,
@@ -79,6 +69,23 @@ static PuzzleImageTypeCode puzzle_get_image_type_from_fp(FILE * const fp)
         }
         image_type++;
     } while (image_type->signature != NULL);
+    return ret;
+}
+
+static PuzzleImageTypeCode puzzle_get_image_type_from_fp(FILE * const fp)
+{
+    unsigned char header[MAX_SIGNATURE_LENGTH];
+    PuzzleImageTypeCode ret = PUZZLE_IMAGE_TYPE_ERROR;
+    fpos_t pos;
+
+    if (fgetpos(fp, &pos) != 0) {
+        return PUZZLE_IMAGE_TYPE_ERROR;
+    }
+    rewind(fp);
+    if (fread(header, (size_t) 1U, sizeof header, fp) != sizeof header) {
+        goto bye;
+    }
+    ret = puzzle_get_image_type_from_header(header);
     bye:
     if (fsetpos(fp, &pos) != 0) {
         puzzle_err_bug(__FILE__, __LINE__);
@@ -510,25 +517,13 @@ static int puzzle_fill_dvec(PuzzleDvec * const dvec,
     return 0;
 }
 
-int puzzle_fill_dvec_from_file(PuzzleContext * const context,
-                               PuzzleDvec * const dvec,
-                               const char * const file)
+static gdImagePtr puzzle_create_gdimage_from_file(const char * const file)
 {
     gdImagePtr gdimage = NULL;
     FILE *fp;
-    PuzzleView view;
-    PuzzleAvgLvls avglvls;
     PuzzleImageTypeCode image_type_code;
-    int ret = 0;
-
-    if (context->magic != PUZZLE_CONTEXT_MAGIC) {
-        puzzle_err_bug(__FILE__, __LINE__);
-    }
-    puzzle_init_view(&view);
-    puzzle_init_avglvls(&avglvls);
-    puzzle_init_dvec(context, dvec);
     if ((fp = fopen(file, "rb")) == NULL) {
-        return -1;
+        return NULL;
     }
     image_type_code = puzzle_get_image_type_from_fp(fp);
     switch (image_type_code) {
@@ -545,11 +540,44 @@ int puzzle_fill_dvec_from_file(PuzzleContext * const context,
         gdimage = NULL;
     }
     (void) fclose(fp);
-    if (gdimage == NULL) {
-        return -1;
+    return gdimage;
+}
+
+static gdImagePtr puzzle_create_gdimage_from_mem(const void * const mem, const size_t size)
+{
+    gdImagePtr gdimage = NULL;
+    PuzzleImageTypeCode image_type_code = puzzle_get_image_type_from_header(mem);
+    switch (image_type_code) {
+    case PUZZLE_IMAGE_TYPE_JPEG:
+        gdimage = gdImageCreateFromJpegPtr(size, (void *)mem);
+        break;
+    case PUZZLE_IMAGE_TYPE_PNG:
+        gdimage = gdImageCreateFromPngPtr(size, (void *)mem);
+        break;
+    case PUZZLE_IMAGE_TYPE_GIF:
+        gdimage = gdImageCreateFromGifPtr(size, (void *)mem);
+        break;
+    default:
+        gdimage = NULL;
     }
+    return gdimage;
+}
+
+static int puzzle_fill_dvec_from_gdimage(PuzzleContext * const context,
+                                         PuzzleDvec * const dvec,
+                                         const gdImagePtr gdimage)
+{
+    PuzzleView view;
+    PuzzleAvgLvls avglvls;
+    int ret = 0;
+
+    if (context->magic != PUZZLE_CONTEXT_MAGIC) {
+        puzzle_err_bug(__FILE__, __LINE__);
+    }
+    puzzle_init_view(&view);
+    puzzle_init_avglvls(&avglvls);
+    puzzle_init_dvec(context, dvec);
     ret = puzzle_getview_from_gdimage(context, &view, gdimage);
-    gdImageDestroy(gdimage);
     if (ret != 0) {
         goto out;
     }
@@ -566,6 +594,35 @@ int puzzle_fill_dvec_from_file(PuzzleContext * const context,
     puzzle_free_view(&view);
     puzzle_free_avglvls(&avglvls);
     
+    return ret;
+}
+
+int puzzle_fill_dvec_from_file(PuzzleContext * const context,
+                               PuzzleDvec * const dvec,
+                               const char * const file)
+{
+    int ret;
+    gdImagePtr gdimage = puzzle_create_gdimage_from_file(file);
+    if (gdimage == NULL) {
+            return -1;
+    }
+    ret = puzzle_fill_dvec_from_gdimage(context, dvec, gdimage);
+    gdImageDestroy(gdimage);
+    return ret;
+}
+
+int puzzle_fill_dvec_from_mem(PuzzleContext * const context,
+                              PuzzleDvec * const dvec,
+                              const void * const mem,
+                              const size_t size)
+{
+    int ret;
+    gdImagePtr gdimage = puzzle_create_gdimage_from_mem(mem, size);
+    if (gdimage == NULL) {
+            return -1;
+    }
+    ret = puzzle_fill_dvec_from_gdimage(context, dvec, gdimage);
+    gdImageDestroy(gdimage);
     return ret;
 }
 

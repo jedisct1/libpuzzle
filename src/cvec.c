@@ -183,3 +183,20 @@ int puzzle_fill_cvec_from_file(PuzzleContext * const context,
     
     return ret;
 }
+
+int puzzle_fill_cvec_from_mem(PuzzleContext * const context,
+                              PuzzleCvec * const cvec,
+                              const void * const mem,
+                              const size_t size)
+{
+    PuzzleDvec dvec;
+    int ret;
+    
+    puzzle_init_dvec(context, &dvec);
+    if ((ret = puzzle_fill_dvec_from_mem(context, &dvec, mem, size)) == 0) {
+        ret = puzzle_fill_cvec_from_dvec(context, cvec, &dvec);
+    }
+    puzzle_free_dvec(context, &dvec);
+    
+    return ret;
+}
