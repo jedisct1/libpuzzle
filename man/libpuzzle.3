@@ -33,28 +33,28 @@
 .Nd compute comparable signatures of bitmap images.
 .Sh SYNOPSIS
 .Fd #include <puzzle.h>
-.Ft int
+.Ft void
 .Fn puzzle_init_context "PuzzleContext *context"
-.Ft int
+.Ft void
 .Fn puzzle_free_context "PuzzleContext *context"
-.Ft int
+.Ft void
 .Fn puzzle_init_cvec "PuzzleContext *context" "PuzzleCvec *cvec"
+.Ft void
+.Fn puzzle_init_dvec "PuzzleContext *context" "PuzzleDvec *dvec"
 .Ft int
-.Fn puzzle_init_dvec "PuzzleContext *context" "PuzzleDvec *cvec"
-.Ft void
 .Fn puzzle_fill_dvec_from_file "PuzzleContext *context" "PuzzleDvec * dvec" "const char *file"
-.Ft void
+.Ft int
 .Fn puzzle_fill_cvec_from_file "PuzzleContext *context" "PuzzleCvec * cvec" "const char *file"
-.Ft void
+.Ft int
 .Fn puzzle_fill_dvec_from_mem "PuzzleContext *context" "PuzzleDvec * dvec" "const void *mem" "size_t size"
-.Ft void
+.Ft int
 .Fn puzzle_fill_cvec_from_mem "PuzzleContext *context" "PuzzleCvec * cvec" "const void *mem" "size_t size"
-.Ft void
+.Ft int
 .Fn puzzle_fill_cvec_from_dvec "PuzzleContext *context" "PuzzleCvec * cvec" "const PuzzleDvec *dvec"
 .Ft void
 .Fn puzzle_free_cvec "PuzzleContext *context" "PuzzleCvec *cvec"
 .Ft void
-.Fn puzzle_free_dvec "PuzzleContext *context" "PuzzleDvec *cvec"
+.Fn puzzle_free_dvec "PuzzleContext *context" "PuzzleDvec *dvec"
 .Ft void
 .Fn puzzle_init_compressed_cvec "PuzzleContext *context" "PuzzleCompressedCvec * compressed_cvec"
 .Ft void
@@ -64,7 +64,7 @@
 .Ft int
 .Fn puzzle_uncompress_cvec "PuzzleContext *context" "PuzzleCompressedCvec * compressed_cvec" "PuzzleCvec * const cvec"
 .Ft double
-.Fn puzzle_vector_normalized_distance "PuzzleContext *context" "const PuzzleCvec * cvec1" "const PuzzleCvec * cvec2", "const int fix_for_texts"
+.Fn puzzle_vector_normalized_distance "PuzzleContext *context" "const PuzzleCvec * cvec1" "const PuzzleCvec * cvec2" "int fix_for_texts"
 .Sh DESCRIPTION
 The Puzzle library computes a signature out of a bitmap picture.
 Signatures are comparable and similar pictures have similar signatures.
