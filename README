@@ -190,6 +190,9 @@ Here are third-party projects using libpuzzle:
   ftwin is a tool useful to find duplicate files according to their content on
 your file system.
 
+* Python bindings for libpuzzle: PyPuzzle
+  https://github.com/ArchangelSDY/PyPuzzle
+
 
            ------------------------ CONTACT ------------------------
 
@@ -206,9 +209,6 @@ listpuzzle-subscribe at pureftpd dot org
 For anything else, you can get in touch with me at:
 
 libpuzzle at pureftpd dot org
-
-If you are interested in bindings for Ruby, Python, PHP, etc. just ask!
-
 
 Thank you,
 
