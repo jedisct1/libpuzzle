@@ -38,7 +38,7 @@ int puzzle_compress_cvec(PuzzleContext * const context,
     }
     ptr = cvec->vec;
     cptr = compressed_cvec->vec;
-    while (remaining > (size_t) 3U) {
+    while (remaining >= (size_t) 3U) {
         *cptr++ = PC_NM(ptr[0]) + PC_NM(ptr[1]) * 5U +
             PC_NM(ptr[2]) * (5U * 5U);
         ptr += 3U;
