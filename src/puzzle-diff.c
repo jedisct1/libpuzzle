@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
         printf("%g\n", d);
         return 0;
     }
-    if (d >= opts.similarity_threshold) {
+    if (d > opts.similarity_threshold) {
         return 20;
     }
     return 10;
