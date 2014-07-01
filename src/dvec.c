@@ -517,6 +517,19 @@ static int puzzle_fill_dvec(PuzzleDvec * const dvec,
     return 0;
 }
 
+static void puzzle_remove_transparency(gdImagePtr gdimage)
+{
+    int background = gdTrueColor(255, 255, 255);
+    
+    int x,y;
+    for (y = 0; (y < gdimage->sy); y++) {
+        for (x = 0; (x < gdimage->sx); x++) {
+            int cpix = gdimage->tpixels[y][x];
+            gdImageSetPixel(gdimage, x, y, gdAlphaBlend(background, cpix) );
+        }
+    }
+}
+
 static gdImagePtr puzzle_create_gdimage_from_file(const char * const file)
 {
     gdImagePtr gdimage = NULL;
@@ -606,6 +619,7 @@ int puzzle_fill_dvec_from_file(PuzzleContext * const context,
     if (gdimage == NULL) {
             return -1;
     }
+    puzzle_remove_transparency(gdimage);
     ret = puzzle_fill_dvec_from_gdimage(context, dvec, gdimage);
     gdImageDestroy(gdimage);
     return ret;
@@ -621,6 +635,7 @@ int puzzle_fill_dvec_from_mem(PuzzleContext * const context,
     if (gdimage == NULL) {
             return -1;
     }
+    puzzle_remove_transparency(gdimage);
     ret = puzzle_fill_dvec_from_gdimage(context, dvec, gdimage);
     gdImageDestroy(gdimage);
     return ret;
