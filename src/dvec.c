@@ -135,6 +135,7 @@ static int puzzle_autocrop_axis(PuzzleContext * const context,
     do {
         chunk_contrast = 0.0;
         chunk_o = chunk_o1;
+        previous_level = *maptr;
         do {
             level = *maptr;
             if (previous_level > level) {
@@ -142,6 +143,7 @@ static int puzzle_autocrop_axis(PuzzleContext * const context,
             } else {
                 chunk_contrast += (double) (level - previous_level);
             }
+            previous_level = level;
             maptr += omaptrinc;
         } while (chunk_o-- != 0U);
         chunk_contrasts[chunk_n] = chunk_contrast;
