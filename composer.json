@@ -1,0 +1,10 @@
+{
+  "name": "jedisct1/libpuzzle",
+  "description": "A library to quickly find visually similar images.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "type": "library",
+  "require": {
+    "php": ">=5.0"
+  }
+}
