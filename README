@@ -194,22 +194,9 @@ your file system.
   https://github.com/ArchangelSDY/PyPuzzle
 
 
-           ------------------------ CONTACT ------------------------
+           ------------------------ STATUS ------------------------
 
 
-The main web site for the project is: http://libpuzzle.pureftpd.org
-
-If you need to share ideas with other users, or if you need help, feel free to
-subscribe to the mailing-list.
-
-In order to subscribe, just send a mail with random content to:
-
-listpuzzle-subscribe at pureftpd dot org
-
-For anything else, you can get in touch with me at:
-
-libpuzzle at pureftpd dot org
-
-Thank you,
-
-               -Frank.
+This project is unfortunately not maintained any more. Pull requests are
+always welcome, but I don't use this library any more and I don't have enough
+spare time to actively work on it.
