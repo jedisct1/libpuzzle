@@ -522,14 +522,14 @@ static int puzzle_fill_dvec(PuzzleDvec * const dvec,
 static void puzzle_remove_transparency(gdImagePtr gdimage)
 {
     int background = gdTrueColor(255, 255, 255);
-    int x,y,cpix;
+    int x, y, cpix;
     
     gdImagePaletteToTrueColor(gdimage);
     
-    for (y = 0; (y < gdImageSY(gdimage)); y++) {
-        for (x = 0; (x < gdImageSX(gdimage)); x++) {
+    for (y = 0; y < gdImageSY(gdimage); y++) {
+        for (x = 0; x < gdImageSX(gdimage); x++) {
             cpix = gdImageGetTrueColorPixel(gdimage, x, y);
-            gdImageSetPixel(gdimage, x, y, gdAlphaBlend(background, cpix) );
+            gdImageSetPixel(gdimage, x, y, gdAlphaBlend(background, cpix));
         }
     }
 }
