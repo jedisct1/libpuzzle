@@ -12,7 +12,7 @@ png, jpg), even if they have been resized, recompressed, recolored or slightly
 modified.
 
 The library is free, lightweight yet very fast, configurable, easy to use and
-it has been designed with security in mind. This is a C library, but is also
+it has been designed with security in mind. This is a C library, but it also
 comes with a command-line tool and PHP bindings.
 
 
